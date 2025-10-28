@@ -1,4 +1,5 @@
 import torch 
+import torch.nn.functional as F
 
 def sliding_window_crop_batched(img, window_size=(256, 256), stride=(172, 172)):
     #default to window size 256x256, stride 172
@@ -43,3 +44,31 @@ def sliding_window_crop_batched(img, window_size=(256, 256), stride=(172, 172)):
     positions = [(y * s_h, x * s_w) for y in range(nH) for x in range(nW)]
 
     return patches, positions
+
+
+def make_sr_lr_triplets(batch_x: torch.Tensor, scale: int = 2):
+    """
+    Generate (HR, LR, SR) triplets by bicubic downsampling and re-upscaling.
+
+    Args:
+        batch_x (torch.Tensor): Input tensor [N, C, H, W] — high-res batch.
+        scale (int): Downsampling factor.
+
+    Returns:
+        batch_x (torch.Tensor): Original high-res batch.
+        batch_y (torch.Tensor): Bicubic downsampled batch (low-res).
+        batch_y_up (torch.Tensor): Bicubic upsampled batch (reconstructed SR baseline).
+    """
+    if batch_x.ndim != 4:
+        raise ValueError("Input must be [N, C, H, W].")
+
+    N, C, H, W = batch_x.shape
+    h_lr, w_lr = H // scale, W // scale
+
+    # Bicubic downsampling
+    batch_y = F.interpolate(batch_x, size=(h_lr, w_lr), mode="bicubic", align_corners=False)
+
+    # Bicubic upsampling back to original size
+    batch_y_up = F.interpolate(batch_y, size=(H, W), mode="bicubic", align_corners=False)
+
+    return batch_x, batch_y_up, batch_y
