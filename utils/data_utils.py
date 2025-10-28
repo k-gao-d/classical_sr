@@ -46,16 +46,15 @@ def sliding_window_crop_batched(img, window_size=(256, 256), stride=(172, 172)):
     return patches, positions
 
 
-def make_sr_lr_triplets(batch_x: torch.Tensor, scale: int = 2):
+def make_sr_lr_pair(batch_x: torch.Tensor, scale: int = 2):
     """
-    Generate (HR, LR, SR) triplets by bicubic downsampling and re-upscaling.
+    Generate (LR, SR) triplets by bicubic downsampling and re-upscaling.
 
     Args:
         batch_x (torch.Tensor): Input tensor [N, C, H, W] — high-res batch.
         scale (int): Downsampling factor.
 
     Returns:
-        batch_x (torch.Tensor): Original high-res batch.
         batch_y (torch.Tensor): Bicubic downsampled batch (low-res).
         batch_y_up (torch.Tensor): Bicubic upsampled batch (reconstructed SR baseline).
     """
@@ -71,4 +70,4 @@ def make_sr_lr_triplets(batch_x: torch.Tensor, scale: int = 2):
     # Bicubic upsampling back to original size
     batch_y_up = F.interpolate(batch_y, size=(H, W), mode="bicubic", align_corners=False)
 
-    return batch_x, batch_y_up, batch_y
+    return batch_y_up, batch_y
