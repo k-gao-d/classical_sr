@@ -1,6 +1,8 @@
 import torch 
 
-def sliding_window_crop_batched(img, window_size=(patch_size, patch_size), stride=(crop_stride, crop_stride)):
+def sliding_window_crop_batched(img, window_size=(256, 256), stride=(172, 172)):
+    #default to window size 256x256, stride 172
+    #so that get 9 patches from 512x512 image with overlap.
     """
     Crop an image tensor into overlapping patches using a sliding window.
     Returns a single batched tensor of shape [N, C, H_win, W_win].
